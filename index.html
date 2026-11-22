@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Level 100 XP Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            width: 350px;
+        }
+        h2 {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            background-color: #2a2a2a;
+            color: #fff;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #005999;
+        }
+        .results {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #444;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Level 100 Calculator</h2>
+    
+    <div class="input-group">
+        <label for="levelInput">Current Level (1-100):</label>
+        <input type="number" id="levelInput" min="1" max="100" placeholder="e.g. 45">
+    </div>
+
+    <div class="input-group">
+        <label for="avgXpInput">Average XP Per Game:</label>
+        <input type="number" id="avgXpInput" placeholder="e.g. 1500">
+    </div>
+
+    <button onclick="calculateXP()">Calculate</button>
+
+    <div class="results" id="resultsDiv" style="display: none;">
+        <strong>Progress Summary:</strong><br>
+        <span id="resXpNeeded"></span><br>
+        <span id="resPercentage"></span><br><br>
+        <strong>Time & Game Estimates:</strong><br>
+        <span id="resGamesNeeded"></span><br>
+        <span id="resInGameTime"></span><br>
+        <span id="resTotalTime"></span>
+    </div>
+</div>
+
+<script>
+    const XP_TABLE = {
+        1: 0, 2: 1071, 3: 2359, 4: 4014, 5: 6190, 6: 9045, 7: 12741, 8: 17445, 9: 23328, 10: 30565,
+        11: 39335, 12: 49821, 13: 62211, 14: 76697, 15: 93475, 16: 112745, 17: 134711, 18: 159582, 19: 187571, 20: 218895,
+        21: 253775, 22: 292436, 23: 335108, 24: 382025, 25: 433425, 26: 489550, 27: 580695, 28: 679673, 29: 786866, 30: 902663,
+        31: 1027458, 32: 1161653, 33: 1305655, 34: 1459877, 35: 1624740, 36: 1800670, 37: 1988100, 38: 2187468, 39: 2399220, 40: 2623807,
+        41: 2861687, 42: 3113324, 43: 3379189, 44: 3659758, 45: 3955514, 46: 4266947, 47: 4594552, 48: 4938831, 49: 5300292, 50: 5679450,
+        51: 6076825, 52: 6492945, 53: 6928343, 54: 7383558, 55: 7859137, 56: 8355632, 57: 8873602, 58: 9413611, 59: 9976231, 60: 10562039,
+        61: 11171619, 62: 12016542, 63: 12894743, 64: 13807025, 65: 14754201, 66: 15737091, 67: 16756524, 68: 17813337, 69: 18908375, 70: 20042493,
+        71: 21216553, 72: 22431426, 73: 23687991, 74: 24987135, 75: 26329755, 76: 27716755, 77: 29149048, 78: 30627555, 79: 32153205, 80: 33726937,
+        81: 35349697, 82: 37022440, 83: 38746129, 84: 40521735, 85: 42350239, 86: 44232629, 87: 46169902, 88: 48163063, 89: 50213125, 90: 52321111,
+        91: 54488051, 92: 57827950, 93: 61259409, 94: 64784012, 95: 68403354, 96: 72119044, 97: 75932703, 98: 79845965, 99: 83860477, 100: 87977897
+    };
+
+    function formatTime(totalSeconds) {
+        let hours = Math.floor(totalSeconds / 3600);
+        let minutes = Math.floor((totalSeconds % 3600) / 60);
+        let seconds = totalSeconds % 60;
+
+        if (hours > 0) {
+            return `${hours} hrs, ${minutes} mins`;
+        } else if (minutes > 0) {
+            return `${minutes} mins, ${seconds} secs`;
+        } else {
+            return `${seconds} secs`;
+        }
+    }
+
+    function calculateXP() {
+        let level = parseInt(document.getElementById("levelInput").value);
+        let avgXp = parseFloat(document.getElementById("avgXpInput").value);
+        let resultsDiv = document.getElementById("resultsDiv");
+
+        if (isNaN(level) || level < 1 || level > 100) {
+            alert("Please enter a valid level between 1 and 100.");
+            return;
+        }
+        if (isNaN(avgXp) || avgXp <= 0) {
+            alert("Please enter a valid average XP per game greater than 0.");
+            return;
+        }
+
+        let currentXp = XP_TABLE[level];
+        let maxXp = XP_TABLE[100];
+        let xpNeeded = maxXp - currentXp;
+        let percentage = (currentXp / maxXp) * 100;
+        let gamesNeeded = Math.ceil(xpNeeded / avgXp);
+
+        let inGameSeconds = gamesNeeded * 135; // 2m 15s
+        let totalSeconds = gamesNeeded * 155;    // 2m 35s
+
+        document.getElementById("resXpNeeded").innerText = `XP Needed: ${xpNeeded.toLocaleString()} XP`;
+        document.getElementById("resPercentage").innerText = `Progress: ${percentage.toFixed(2)}%`;
+        document.getElementById("resGamesNeeded").innerText = `Estimated Games: ~${gamesNeeded.toLocaleString()}`;
+        document.getElementById("resInGameTime").innerText = `In-Game Time: ${formatTime(inGameSeconds)}`;
+        document.getElementById("resTotalTime").innerText = `Total Time (w/ menus): ${formatTime(totalSeconds)}`;
+
+        resultsDiv.style.display = "block";
+    }
+</script>
+
+</body>
+</html>
