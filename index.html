@@ -129,10 +129,13 @@
     }
 
     function calculateXP() {
-        let level = parseInt(document.getElementById("levelInput").value);
-        let currentXpInput = document.getElementById("currentXpInput").value;
-        let avgXp = parseFloat(document.getElementById("avgXpInput").value);
+        let levelInputVal = document.getElementById("levelInput").value;
+        let currentXpInputVal = document.getElementById("currentXpInput").value;
+        let avgXpInputVal = document.getElementById("avgXpInput").value;
         let resultsDiv = document.getElementById("resultsDiv");
+
+        let level = parseInt(levelInputVal);
+        let avgXp = parseFloat(avgXpInputVal);
 
         if (isNaN(level) || level < 1 || level > 100) {
             alert("Please enter a valid level between 1 and 100.");
@@ -143,13 +146,11 @@
             return;
         }
 
-        // Base total XP at the start of the entered level
         let baseTotalXp = XP_TABLE[level];
         let currentXpInLevel = 0;
 
-        // If the user filled out the optional exact XP input, parse and add it
-        if (currentXpInput !== "") {
-            currentXpInLevel = parseInt(currentXpInput);
+        if (currentXpInputVal !== "") {
+            currentXpInLevel = parseInt(currentXpInputVal);
             if (isNaN(currentXpInLevel) || currentXpInLevel < 0) {
                 alert("Please enter a valid positive number for current XP in level.");
                 return;
@@ -159,7 +160,6 @@
         let userTotalXp = baseTotalXp + currentXpInLevel;
         let maxXp = XP_TABLE[100];
 
-        // Ensure user hasn't exceeded max cap
         if (userTotalXp > maxXp) {
             userTotalXp = maxXp;
         }
@@ -168,11 +168,11 @@
         let percentage = (userTotalXp / maxXp) * 100;
         let gamesNeeded = Math.ceil(xpNeeded / avgXp);
 
-        let inGameSeconds = gamesNeeded * 135; // 2m 15s
-        let totalSeconds = gamesNeeded * 155;    // 2m 35s
+        let inGameSeconds = gamesNeeded * 135; 
+        let totalSeconds = gamesNeeded * 155;    
 
         document.getElementById("resXpNeeded").innerText = `XP Needed: ${xpNeeded.toLocaleString()} XP`;
-        document.getElementById("resPercentage").innerText = `Progress: ${percentage.toFixed(2)%}`;
+        document.getElementById("resPercentage").innerText = `Progress: ${percentage.toFixed(2)}%`;
         document.getElementById("resGamesNeeded").innerText = `Estimated Games: ~${gamesNeeded.toLocaleString()}`;
         document.getElementById("resInGameTime").innerText = `In-Game Time: ${formatTime(inGameSeconds)}`;
         document.getElementById("resTotalTime").innerText = `Total Time (w/ menus): ${formatTime(totalSeconds)}`;
