@@ -74,17 +74,17 @@
     
     <div class="input-group">
         <label for="levelInput">Current Level (1-100):</label>
-        <input type="number" id="levelInput" min="1" max="100" placeholder="e.g. 45">
+        <input type="number" id="levelInput" min="1" max="100" placeholder="e.g. 90">
     </div>
 
     <div class="input-group">
-        <label for="currentXpInput">Current XP in Level (Optional):</label>
-        <input type="number" id="currentXpInput" min="0" placeholder="Leave blank for start of level">
+        <label for="xpLeftInput">XP To Next Level (Optional):</label>
+        <input type="number" id="xpLeftInput" min="0" placeholder="Leave blank for start of level">
     </div>
 
     <div class="input-group">
         <label for="avgXpInput">Average XP Per Game:</label>
-        <input type="number" id="avgXpInput" placeholder="e.g. 1500">
+        <input type="number" id="avgXpInput" placeholder="e.g. 350000">
     </div>
 
     <button onclick="calculateXP()">Calculate</button>
@@ -130,15 +130,15 @@
 
     function calculateXP() {
         let levelInputVal = document.getElementById("levelInput").value;
-        let currentXpInputVal = document.getElementById("currentXpInput").value;
+        let xpLeftInputVal = document.getElementById("xpLeftInput").value;
         let avgXpInputVal = document.getElementById("avgXpInput").value;
         let resultsDiv = document.getElementById("resultsDiv");
 
         let level = parseInt(levelInputVal);
         let avgXp = parseFloat(avgXpInputVal);
 
-        if (isNaN(level) || level < 1 || level > 100) {
-            alert("Please enter a valid level between 1 and 100.");
+        if (isNaN(level) || level < 1 || level >= 100) {
+            alert("Please enter a valid level between 1 and 99 (Level 100 is max).");
             return;
         }
         if (isNaN(avgXp) || avgXp <= 0) {
@@ -146,20 +146,29 @@
             return;
         }
 
-        let baseTotalXp = XP_TABLE[level];
-        let currentXpInLevel = 0;
+        // Total XP at the start of current level and start of next level
+        let currentLevelBaseXp = XP_TABLE[level];
+        let nextLevelBaseXp = XP_TABLE[level + 1];
+        let totalXpSpanForLevel = nextLevelBaseXp - currentLevelBaseXp;
 
-        if (currentXpInputVal !== "") {
-            currentXpInLevel = parseInt(currentXpInputVal);
-            if (isNaN(currentXpInLevel) || currentXpInLevel < 0) {
-                alert("Please enter a valid positive number for current XP in level.");
+        let userTotalXp = currentLevelBaseXp; // Default to start of level
+
+        if (xpLeftInputVal !== "") {
+            let xpLeft = parseInt(xpLeftInputVal);
+            if (isNaN(xpLeft) || xpLeft < 0) {
+                alert("Please enter a valid positive number for XP to next level.");
                 return;
+            }
+            // User total XP is the next level's base minus what they have left to go
+            userTotalXp = nextLevelBaseXp - xpLeft;
+            
+            // Safety check so it doesn't drop below current level base
+            if (userTotalXp < currentLevelBaseXp) {
+                userTotalXp = currentLevelBaseXp;
             }
         }
 
-        let userTotalXp = baseTotalXp + currentXpInLevel;
         let maxXp = XP_TABLE[100];
-
         if (userTotalXp > maxXp) {
             userTotalXp = maxXp;
         }
