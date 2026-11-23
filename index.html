@@ -12,7 +12,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
         .container {
@@ -78,6 +78,11 @@
     </div>
 
     <div class="input-group">
+        <label for="currentXpInput">Current XP in Level (Optional):</label>
+        <input type="number" id="currentXpInput" min="0" placeholder="Leave blank for start of level">
+    </div>
+
+    <div class="input-group">
         <label for="avgXpInput">Average XP Per Game:</label>
         <input type="number" id="avgXpInput" placeholder="e.g. 1500">
     </div>
@@ -125,6 +130,7 @@
 
     function calculateXP() {
         let level = parseInt(document.getElementById("levelInput").value);
+        let currentXpInput = document.getElementById("currentXpInput").value;
         let avgXp = parseFloat(document.getElementById("avgXpInput").value);
         let resultsDiv = document.getElementById("resultsDiv");
 
@@ -137,17 +143,36 @@
             return;
         }
 
-        let currentXp = XP_TABLE[level];
+        // Base total XP at the start of the entered level
+        let baseTotalXp = XP_TABLE[level];
+        let currentXpInLevel = 0;
+
+        // If the user filled out the optional exact XP input, parse and add it
+        if (currentXpInput !== "") {
+            currentXpInLevel = parseInt(currentXpInput);
+            if (isNaN(currentXpInLevel) || currentXpInLevel < 0) {
+                alert("Please enter a valid positive number for current XP in level.");
+                return;
+            }
+        }
+
+        let userTotalXp = baseTotalXp + currentXpInLevel;
         let maxXp = XP_TABLE[100];
-        let xpNeeded = maxXp - currentXp;
-        let percentage = (currentXp / maxXp) * 100;
+
+        // Ensure user hasn't exceeded max cap
+        if (userTotalXp > maxXp) {
+            userTotalXp = maxXp;
+        }
+
+        let xpNeeded = maxXp - userTotalXp;
+        let percentage = (userTotalXp / maxXp) * 100;
         let gamesNeeded = Math.ceil(xpNeeded / avgXp);
 
         let inGameSeconds = gamesNeeded * 135; // 2m 15s
         let totalSeconds = gamesNeeded * 155;    // 2m 35s
 
         document.getElementById("resXpNeeded").innerText = `XP Needed: ${xpNeeded.toLocaleString()} XP`;
-        document.getElementById("resPercentage").innerText = `Progress: ${percentage.toFixed(2)}%`;
+        document.getElementById("resPercentage").innerText = `Progress: ${percentage.toFixed(2)%}`;
         document.getElementById("resGamesNeeded").innerText = `Estimated Games: ~${gamesNeeded.toLocaleString()}`;
         document.getElementById("resInGameTime").innerText = `In-Game Time: ${formatTime(inGameSeconds)}`;
         document.getElementById("resTotalTime").innerText = `Total Time (w/ menus): ${formatTime(totalSeconds)}`;
